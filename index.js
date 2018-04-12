@@ -1,15 +1,16 @@
-const R = require('ramda');
-
-const ENABLE_EXPORT_RE = /@\s*export-test/i
+const ENABLE_EXPORT_RE = /@\s*export-test/i;
 
 module.exports = function({ types: t }) {
-
-function doTheThing(path, state) {
-  if (R.any(({ value }) => ENABLE_EXPORT_RE.test(value), path.node.leadingComments  || [])) {
-    const name = R.pathOr(R.path(['node', 'id'], path), ['node', 'declarations', 0, 'id'], path);
-    path.replaceWith(t.exportNamedDeclaration(path.node, [t.exportSpecifier(name, name)]));
-  }
-}
+  const doTheThing = path => {
+    const { node } = path;
+    const { leadingComments } = node;
+    if (
+      Array.isArray(leadingComments) &&
+      leadingComments.find(({ value }) => ENABLE_EXPORT_RE.test(value))
+    ) {
+      path.replaceWith(t.exportNamedDeclaration(path.node, []));
+    }
+  };
 
   return {
     visitor: {
@@ -17,4 +18,4 @@ function doTheThing(path, state) {
       FunctionDeclaration: doTheThing
     }
   };
-}
+};
